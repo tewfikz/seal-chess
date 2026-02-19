@@ -1,7 +1,7 @@
 {
-  "name": "crab-chess",
+  "name": "seal-chess",
   "version": "1.0.0",
-  "description": "Real-time multiplayer chess with crab-themed pieces",
+  "description": "Real-time multiplayer chess with baby seal-themed pieces",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

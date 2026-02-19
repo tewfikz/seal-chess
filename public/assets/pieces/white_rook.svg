@@ -1,20 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
-  <!-- Crab body -->
-  <ellipse cx="22.5" cy="28" rx="13" ry="9" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
-  <!-- Castle turret on shell -->
-  <rect x="16" y="14" width="13" height="8" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5" rx="1"/>
-  <rect x="16" y="11" width="3" height="5" fill="#F5E6CA" stroke="#8B6914" stroke-width="1"/>
-  <rect x="21" y="11" width="3" height="5" fill="#F5E6CA" stroke="#8B6914" stroke-width="1"/>
-  <rect x="26" y="11" width="3" height="5" fill="#F5E6CA" stroke="#8B6914" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- White seal Rook - seal peeking from an ice block -->
+  <!-- Ice block / tower -->
+  <rect x="22" y="55" width="56" height="32" rx="4" fill="#c8e8f8" stroke="#8abcd4" stroke-width="1.5"/>
+  <!-- Ice battlements -->
+  <rect x="22" y="48" width="14" height="10" rx="2" fill="#c8e8f8" stroke="#8abcd4" stroke-width="1.5"/>
+  <rect x="43" y="48" width="14" height="10" rx="2" fill="#c8e8f8" stroke="#8abcd4" stroke-width="1.5"/>
+  <rect x="64" y="48" width="14" height="10" rx="2" fill="#c8e8f8" stroke="#8abcd4" stroke-width="1.5"/>
+  <!-- Ice cracks/texture -->
+  <line x1="35" y1="60" x2="42" y2="72" stroke="#8abcd4" stroke-width="0.8" opacity="0.6"/>
+  <line x1="58" y1="63" x2="52" y2="78" stroke="#8abcd4" stroke-width="0.8" opacity="0.6"/>
+  <!-- Seal head peeking above ice -->
+  <ellipse cx="50" cy="45" rx="18" ry="16" fill="#F5F8FF" stroke="#9AAAC0" stroke-width="1.5"/>
+  <!-- Snout -->
+  <ellipse cx="50" cy="53" rx="9" ry="6" fill="#E8EEF8" stroke="#9AAAC0" stroke-width="1"/>
+  <!-- Nose -->
+  <ellipse cx="50" cy="50" rx="4" ry="2.5" fill="#3a3a5a"/>
   <!-- Eyes -->
-  <circle cx="19" cy="24" r="1.8" fill="#333"/>
-  <circle cx="26" cy="24" r="1.8" fill="#333"/>
-  <!-- Blocky claws -->
-  <path d="M9 25 L5 22 L3 24 L5 27 L9 27 Z" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
-  <path d="M36 25 L40 22 L42 24 L40 27 L36 27 Z" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
-  <!-- Legs -->
-  <line x1="12" y1="31" x2="8" y2="35" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
-  <line x1="33" y1="31" x2="37" y2="35" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
-  <line x1="13" y1="33" x2="9" y2="38" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
-  <line x1="32" y1="33" x2="36" y2="38" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="41" cy="43" r="4.5" fill="#111122"/>
+  <circle cx="59" cy="43" r="4.5" fill="#111122"/>
+  <circle cx="42.5" cy="41.5" r="1.3" fill="white"/>
+  <circle cx="60.5" cy="41.5" r="1.3" fill="white"/>
+  <!-- Flippers resting on ice edge -->
+  <ellipse cx="27" cy="58" rx="9" ry="5" fill="#E0E8F5" stroke="#9AAAC0" stroke-width="1" transform="rotate(-15 27 58)"/>
+  <ellipse cx="73" cy="58" rx="9" ry="5" fill="#E0E8F5" stroke="#9AAAC0" stroke-width="1" transform="rotate(15 73 58)"/>
+  <!-- Whiskers -->
+  <line x1="38" y1="52" x2="23" y2="49" stroke="#9AAAC0" stroke-width="1"/>
+  <line x1="38" y1="55" x2="23" y2="56" stroke="#9AAAC0" stroke-width="1"/>
+  <line x1="62" y1="52" x2="77" y2="49" stroke="#9AAAC0" stroke-width="1"/>
+  <line x1="62" y1="55" x2="77" y2="56" stroke="#9AAAC0" stroke-width="1"/>
 </svg>

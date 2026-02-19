@@ -2,22 +2,22 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-primary: #0a1628;
-  --bg-secondary: #132238;
-  --bg-card: #1a2d4a;
-  --text-primary: #e8dcc8;
-  --text-secondary: #a89880;
-  --accent: #e07020;
-  --accent-hover: #f08030;
-  --accent-glow: rgba(224, 112, 32, 0.3);
-  --danger: #c0392b;
-  --success: #27ae60;
-  --board-light: #f0d9b5;
-  --board-dark: #b58863;
-  --highlight-from: rgba(255, 255, 50, 0.4);
-  --highlight-to: rgba(255, 255, 50, 0.4);
-  --highlight-legal: rgba(0, 0, 0, 0.15);
-  --highlight-check: rgba(255, 0, 0, 0.5);
+  --bg-primary: #071526;
+  --bg-secondary: #0d2240;
+  --bg-card: #122e58;
+  --text-primary: #d8eeff;
+  --text-secondary: #6aaed4;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-glow: rgba(56, 189, 248, 0.3);
+  --danger: #e05050;
+  --success: #34d399;
+  --board-light: #cce8f4;
+  --board-dark: #4a90b8;
+  --highlight-from: rgba(120, 220, 255, 0.45);
+  --highlight-to: rgba(120, 220, 255, 0.45);
+  --highlight-legal: rgba(0, 0, 0, 0.18);
+  --highlight-check: rgba(255, 60, 60, 0.55);
   --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
