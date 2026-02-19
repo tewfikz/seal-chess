@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crab Chess - Leaderboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="leaderboard-container">
+    <h1>&#x1F980; Crab Chess Leaderboard</h1>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="stat-players">-</div>
+        <div class="stat-label">Players</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-games">-</div>
+        <div class="stat-label">Games Played</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-active">-</div>
+        <div class="stat-label">Active Now</div>
+      </div>
+    </div>
+
+    <table class="leaderboard-table" id="leaderboard-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Score</th>
+          <th>W/D/L</th>
+          <th>Games</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboard-body">
+        <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="recent-games" id="recent-games-section">
+      <h2>Recent Games</h2>
+      <div id="recent-games-list">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+
+    <a href="/" class="btn btn-link back-link">&#x1F3AE; Back to Game</a>
+  </div>
+
+  <script>
+    (async function () {
+      // Load stats
+      try {
+        const statsRes = await fetch('/api/stats');
+        const stats = await statsRes.json();
+        document.getElementById('stat-players').textContent = stats.totalPlayers;
+        document.getElementById('stat-games').textContent = stats.totalGames;
+        document.getElementById('stat-active').textContent = stats.activeGames;
+      } catch (e) {
+        console.error('Failed to load stats');
+      }
+
+      // Load leaderboard
+      try {
+        const lbRes = await fetch('/api/leaderboard?limit=20');
+        const leaderboard = await lbRes.json();
+        const tbody = document.getElementById('leaderboard-body');
+
+        if (leaderboard.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No games played yet. Be the first!</td></tr>';
+        } else {
+          tbody.innerHTML = leaderboard.map((p, i) => {
+            const rank = i + 1;
+            const rankClass = rank <= 3 ? `rank rank-${rank}` : 'rank';
+            const medals = ['', '\u{1F947}', '\u{1F948}', '\u{1F949}'];
+            const medal = medals[rank] || '';
+            const totalGames = p.wins + p.losses + p.draws;
+            return `<tr>
+              <td class="${rankClass}">${medal} ${rank}</td>
+              <td>${escapeHtml(p.display_name)}</td>
+              <td class="score">${p.score}</td>
+              <td class="record">${p.wins}/${p.draws}/${p.losses}</td>
+              <td>${totalGames}</td>
+            </tr>`;
+          }).join('');
+        }
+      } catch (e) {
+        document.getElementById('leaderboard-body').innerHTML =
+          '<tr><td colspan="5" class="empty-state">Failed to load leaderboard</td></tr>';
+      }
+
+      // Load recent games
+      try {
+        const gamesRes = await fetch('/api/recent-games?limit=10');
+        const games = await gamesRes.json();
+        const container = document.getElementById('recent-games-list');
+
+        if (games.length === 0) {
+          container.innerHTML = '<div class="empty-state">No completed games yet.</div>';
+        } else {
+          container.innerHTML = games.map(g => {
+            const resultLabels = {
+              white_wins: 'White wins',
+              black_wins: 'Black wins',
+              draw: 'Draw'
+            };
+            const resultClass = (g.result || '').replace('_', '-');
+            return `<div class="game-card">
+              <span>${escapeHtml(g.white_name || '?')} vs ${escapeHtml(g.black_name || '?')}</span>
+              <span class="result-badge ${resultClass}">${resultLabels[g.result] || g.result || '?'}</span>
+            </div>`;
+          }).join('');
+        }
+      } catch (e) {
+        document.getElementById('recent-games-list').innerHTML =
+          '<div class="empty-state">Failed to load recent games</div>';
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    })();
+  </script>
+</body>
+</html>

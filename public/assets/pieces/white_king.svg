@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+  <!-- Crab body - largest -->
+  <ellipse cx="22.5" cy="29" rx="15" ry="10" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
+  <!-- Crown with cross -->
+  <path d="M15 20 L17 13 L20 18 L22.5 10 L25 18 L28 13 L30 20 Z" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Cross on top -->
+  <line x1="22.5" y1="10" x2="22.5" y2="5" stroke="#8B6914" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="7.5" x2="25" y2="7.5" stroke="#8B6914" stroke-width="2" stroke-linecap="round"/>
+  <!-- Jewels -->
+  <circle cx="17" cy="14" r="1.2" fill="#DAA520"/>
+  <circle cx="22.5" cy="11" r="1.2" fill="#DAA520"/>
+  <circle cx="28" cy="14" r="1.2" fill="#DAA520"/>
+  <!-- Eyes -->
+  <circle cx="19" cy="25" r="2.2" fill="#333"/>
+  <circle cx="26" cy="25" r="2.2" fill="#333"/>
+  <!-- Large royal claws -->
+  <path d="M7 25 Q2 20 1 23 Q0 27 3 29 L7 29 Z" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
+  <path d="M38 25 Q43 20 44 23 Q45 27 42 29 L38 29 Z" fill="#F5E6CA" stroke="#8B6914" stroke-width="1.5"/>
+  <!-- Legs -->
+  <line x1="10" y1="32" x2="6" y2="36" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="35" y1="32" x2="39" y2="36" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="11" y1="34" x2="7" y2="39" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="34" y1="34" x2="38" y2="39" stroke="#8B6914" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="13" y1="36" x2="9" y2="41" stroke="#8B6914" stroke-width="1" stroke-linecap="round"/>
+  <line x1="32" y1="36" x2="36" y2="41" stroke="#8B6914" stroke-width="1" stroke-linecap="round"/>
+</svg>
