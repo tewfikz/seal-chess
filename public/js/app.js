@@ -400,7 +400,7 @@
     });
 
     socket.on('game-ready', (data) => {
-      // Both players transition to game screen
+      // Both players: transition to game screen (creator may still be on invite screen)
       if (!board) {
         switchToGameScreen();
       }
@@ -423,11 +423,15 @@
       gameActive = true;
       currentTurn = 'white';
 
-      // Set starting position and enable moves for white
+      // Set starting position
       board.setPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
-      // Request full game state to get legal moves
+      // Re-join to get full game-state with legal moves.
+      // Safe: server's gameReadySent flag prevents another game-ready loop.
       socket.emit('join-game', { gameId, playerId });
+
+      updateStatusText();
+      updateControls();
     });
 
     socket.on('move-made', (data) => {

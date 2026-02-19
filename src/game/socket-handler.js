@@ -53,7 +53,8 @@ function setupSocketHandlers(io) {
         name: color === 'white' ? whitePlayer?.display_name : blackPlayer?.display_name
       });
 
-      if (game.whiteConnected && game.blackConnected && game.status === 'active') {
+      if (game.whiteConnected && game.blackConnected && game.status === 'active' && !game.gameReadySent) {
+        game.gameReadySent = true;
         io.to(gameId).emit('game-ready', {
           whiteName: whitePlayer?.display_name,
           blackName: blackPlayer?.display_name

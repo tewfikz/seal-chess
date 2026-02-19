@@ -18,6 +18,7 @@ class GameInstance {
     this.status = 'waiting';
     this.drawOffer = null;
     this.disconnectTimers = {};
+    this.gameReadySent = false;
   }
 
   getPlayerColor(playerId) {
