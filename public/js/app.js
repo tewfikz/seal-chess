@@ -1,5 +1,5 @@
 /**
- * Crab Chess - Main Application Controller
+ * Seal Chess - Main Application Controller
  * Handles lobby flow, Socket.IO communication, and game state management
  */
 (function () {
@@ -13,6 +13,7 @@
   let board = null;
   let currentTurn = 'white';
   let gameActive = false;
+  let inQueue = false;
 
   // === DOM REFS ===
   const $ = (sel) => document.querySelector(sel);
@@ -21,26 +22,21 @@
   const createSection = $('#create-section');
   const joinSection = $('#join-section');
   const inviteSection = $('#invite-section');
+  const quickmatchSection = $('#quickmatch-section');
 
   // === INIT ===
   function init() {
-    // Check if we're on a game URL
     const pathMatch = window.location.pathname.match(/^\/game\/([a-zA-Z0-9-]+)/);
-
-    // Check for reconnection data
     const stored = loadSession();
 
     if (pathMatch) {
       const urlGameId = pathMatch[1];
       if (stored && stored.gameId === urlGameId && stored.playerId) {
-        // Attempt reconnection
         attemptReconnect(urlGameId, stored.playerId);
       } else {
-        // Show join form
         showJoinForm(urlGameId);
       }
     } else if (stored && stored.gameId && stored.playerId) {
-      // On homepage but have stored session - offer reconnect
       attemptReconnect(stored.gameId, stored.playerId);
     } else {
       showLobby();
@@ -52,39 +48,46 @@
   // === SESSION STORAGE ===
   function saveSession(gId, pId, color) {
     try {
-      localStorage.setItem('crab_chess_session', JSON.stringify({ gameId: gId, playerId: pId, color }));
+      localStorage.setItem('seal_chess_session', JSON.stringify({ gameId: gId, playerId: pId, color }));
     } catch (e) { /* ignore */ }
   }
 
   function loadSession() {
     try {
-      const data = localStorage.getItem('crab_chess_session');
+      // Support legacy key from pre-rebrand
+      const data = localStorage.getItem('seal_chess_session') || localStorage.getItem('crab_chess_session');
       return data ? JSON.parse(data) : null;
     } catch (e) { return null; }
   }
 
   function clearSession() {
-    try { localStorage.removeItem('crab_chess_session'); } catch (e) { /* ignore */ }
+    try {
+      localStorage.removeItem('seal_chess_session');
+      localStorage.removeItem('crab_chess_session');
+    } catch (e) { /* ignore */ }
   }
 
   // === LOBBY ===
   function showLobby() {
     lobbyScreen.classList.add('active');
     gameScreen.classList.remove('active');
+    quickmatchSection.style.display = '';
     createSection.style.display = '';
     joinSection.style.display = 'none';
     inviteSection.style.display = 'none';
+    $('#quickmatch-waiting').style.display = 'none';
+    $('#quickmatch-btn').disabled = false;
   }
 
   function showJoinForm(gId) {
     gameId = gId;
     lobbyScreen.classList.add('active');
     gameScreen.classList.remove('active');
+    quickmatchSection.style.display = 'none';
     createSection.style.display = 'none';
     joinSection.style.display = '';
     inviteSection.style.display = 'none';
 
-    // Fetch game info
     fetch(`/api/games/${gId}`)
       .then(r => r.json())
       .then(data => {
@@ -107,6 +110,7 @@
   }
 
   function showInviteScreen(gId) {
+    quickmatchSection.style.display = 'none';
     createSection.style.display = 'none';
     joinSection.style.display = 'none';
     inviteSection.style.display = '';
@@ -116,7 +120,33 @@
   }
 
   function bindLobbyEvents() {
-    // Create game
+    // === QUICK MATCH ===
+    $('#quickmatch-btn').addEventListener('click', () => {
+      const name = $('#quickmatch-name').value.trim();
+      if (!name) { $('#quickmatch-name').focus(); return; }
+
+      inQueue = true;
+      $('#quickmatch-btn').disabled = true;
+      $('#quickmatch-waiting').style.display = '';
+      connectSocketForQueue(name);
+    });
+
+    $('#quickmatch-name').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('#quickmatch-btn').click();
+    });
+
+    $('#cancel-queue-btn').addEventListener('click', () => {
+      if (socket) {
+        socket.emit('leave-queue');
+        socket.disconnect();
+        socket = null;
+      }
+      inQueue = false;
+      $('#quickmatch-btn').disabled = false;
+      $('#quickmatch-waiting').style.display = 'none';
+    });
+
+    // === CREATE GAME ===
     $('#create-btn').addEventListener('click', async () => {
       const name = $('#create-name').value.trim();
       if (!name) { $('#create-name').focus(); return; }
@@ -136,9 +166,7 @@
         myColor = data.color;
         saveSession(gameId, playerId, myColor);
 
-        // Update URL
         history.pushState(null, '', `/game/${gameId}`);
-
         showInviteScreen(gameId);
         connectSocket();
       } catch (e) {
@@ -148,7 +176,11 @@
       }
     });
 
-    // Join game
+    $('#create-name').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('#create-btn').click();
+    });
+
+    // === JOIN GAME ===
     $('#join-btn').addEventListener('click', async () => {
       const name = $('#join-name').value.trim();
       if (!name) { $('#join-name').focus(); return; }
@@ -176,7 +208,11 @@
       }
     });
 
-    // Copy invite link
+    $('#join-name').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('#join-btn').click();
+    });
+
+    // === COPY INVITE LINK ===
     $('#copy-link-btn').addEventListener('click', () => {
       const input = $('#invite-link');
       input.select();
@@ -184,22 +220,13 @@
         $('#copy-link-btn').textContent = 'Copied!';
         setTimeout(() => { $('#copy-link-btn').textContent = 'Copy'; }, 2000);
       }).catch(() => {
-        // Fallback
         document.execCommand('copy');
         $('#copy-link-btn').textContent = 'Copied!';
         setTimeout(() => { $('#copy-link-btn').textContent = 'Copy'; }, 2000);
       });
     });
 
-    // Enter key on name inputs
-    $('#create-name').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') $('#create-btn').click();
-    });
-    $('#join-name').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') $('#join-btn').click();
-    });
-
-    // Game controls
+    // === GAME CONTROLS ===
     $('#resign-btn').addEventListener('click', () => {
       if (confirm('Are you sure you want to resign?')) {
         socket.emit('resign');
@@ -226,17 +253,14 @@
       $('#draw-offer-popup').style.display = 'none';
     });
 
-    // New game button (game over overlay)
     $('#new-game-btn').addEventListener('click', () => {
       resetToLobby();
     });
 
-    // Cancel game button (invite screen)
     $('#cancel-game-btn').addEventListener('click', () => {
       resetToLobby();
     });
 
-    // Leave game button (during game)
     $('#leave-game-btn').addEventListener('click', () => {
       if (gameActive) {
         if (!confirm('Leave the game? You may lose by abandonment if you don\'t return.')) return;
@@ -244,13 +268,54 @@
       resetToLobby();
     });
 
-    // Promotion buttons
     document.querySelectorAll('.promotion-piece').forEach(btn => {
       btn.addEventListener('click', () => {
         const piece = btn.dataset.piece;
         $('#promotion-dialog').style.display = 'none';
         if (board) board.resolvePromotion(piece);
       });
+    });
+  }
+
+  // === MATCHMAKING SOCKET ===
+  function connectSocketForQueue(playerName) {
+    socket = io({ transports: ['websocket', 'polling'] });
+
+    socket.on('connect', () => {
+      socket.emit('join-queue', { playerName });
+    });
+
+    socket.on('match-found', (data) => {
+      inQueue = false;
+      gameId = data.gameId;
+      playerId = data.playerId;
+      myColor = data.color;
+      saveSession(gameId, playerId, myColor);
+      history.pushState(null, '', `/game/${gameId}`);
+
+      switchToGameScreen();
+
+      // Register full game event handlers now
+      bindGameSocketEvents(socket);
+
+      socket.emit('join-game', { gameId, playerId });
+    });
+
+    socket.on('queue-error', (data) => {
+      alert(data.message || 'Matchmaking error. Please try again.');
+      inQueue = false;
+      $('#quickmatch-btn').disabled = false;
+      $('#quickmatch-waiting').style.display = 'none';
+      socket.disconnect();
+      socket = null;
+    });
+
+    socket.on('disconnect', () => {
+      if (inQueue) {
+        inQueue = false;
+        $('#quickmatch-btn').disabled = false;
+        $('#quickmatch-waiting').style.display = 'none';
+      }
     });
   }
 
@@ -302,9 +367,9 @@
     board = null;
     currentTurn = 'white';
     gameActive = false;
+    inQueue = false;
     moveHistoryMoves = [];
 
-    // Clear UI state
     $('#move-list').innerHTML = '';
     $('#self-captured').innerHTML = '';
     $('#opponent-captured').innerHTML = '';
@@ -317,7 +382,6 @@
     $('#create-name').value = '';
     $('#create-btn').disabled = false;
 
-    // Reset URL and show lobby
     history.pushState(null, '', '/');
     showLobby();
   }
@@ -327,7 +391,6 @@
     lobbyScreen.classList.remove('active');
     gameScreen.classList.add('active');
 
-    // Initialize board
     const boardEl = $('#board');
     board = new ChessBoard(boardEl, {
       orientation: myColor,
@@ -341,43 +404,47 @@
     });
   }
 
-  // === SOCKET.IO ===
+  // === SOCKET.IO (standard game connection) ===
   function connectSocket() {
     socket = io({ transports: ['websocket', 'polling'] });
 
     socket.on('connect', () => {
-      socket.emit('join-game', { gameId, playerId });
+      if (gameId && playerId) {
+        socket.emit('join-game', { gameId, playerId });
+      }
     });
 
-    socket.on('game-state', (state) => {
-      // If game is still waiting for opponent, stay on invite screen
-      if (state.status === 'waiting') {
-        return;
+    socket.on('reconnect', () => {
+      $('#self-connection').className = 'connection-dot connected';
+      if (gameId && playerId) {
+        socket.emit('join-game', { gameId, playerId });
       }
+    });
 
-      // Game is active or completed — switch to game screen
-      if (!board) {
-        switchToGameScreen();
-      }
+    bindGameSocketEvents(socket);
+  }
+
+  // === GAME SOCKET EVENTS (shared between normal and matchmaking flow) ===
+  function bindGameSocketEvents(sock) {
+    sock.on('game-state', (state) => {
+      if (state.status === 'waiting') return;
+
+      if (!board) switchToGameScreen();
       lobbyScreen.classList.remove('active');
       gameScreen.classList.add('active');
 
-      // Set board position
       board.setPosition(state.fen);
       board.setLegalMoves(state.yourColor === state.turn ? state.legalMoves : {});
       board.setInteractive(state.status === 'active' && state.yourColor === state.turn);
 
-      // Player names
       const isWhite = myColor === 'white';
       $('#self-name').textContent = isWhite ? state.whiteName : state.blackName;
       $('#opponent-name').textContent = isWhite ? state.blackName : state.whiteName;
 
-      // Piece icons
       $('#self-piece-icon').innerHTML = `<img src="/assets/pieces/${myColor}_king.svg" alt="">`;
       const oppColor = myColor === 'white' ? 'black' : 'white';
       $('#opponent-piece-icon').innerHTML = `<img src="/assets/pieces/${oppColor}_king.svg" alt="">`;
 
-      // Connection status
       const selfConnected = isWhite ? state.whiteConnected : state.blackConnected;
       const oppConnected = isWhite ? state.blackConnected : state.whiteConnected;
       $('#self-connection').className = `connection-dot ${selfConnected ? 'connected' : ''}`;
@@ -389,7 +456,6 @@
       updateStatusText();
       updateControls();
 
-      // Check highlight
       if (state.inCheck) {
         const checkColor = state.turn;
         const kingSquare = board.findKing(checkColor);
@@ -399,11 +465,8 @@
       }
     });
 
-    socket.on('game-ready', (data) => {
-      // Both players: transition to game screen (creator may still be on invite screen)
-      if (!board) {
-        switchToGameScreen();
-      }
+    sock.on('game-ready', (data) => {
+      if (!board) switchToGameScreen();
       lobbyScreen.classList.remove('active');
       gameScreen.classList.add('active');
 
@@ -411,40 +474,32 @@
       $('#self-name').textContent = isWhite ? data.whiteName : data.blackName;
       $('#opponent-name').textContent = isWhite ? data.blackName : data.whiteName;
 
-      // Set piece icons
       $('#self-piece-icon').innerHTML = `<img src="/assets/pieces/${myColor}_king.svg" alt="">`;
       const oppColor = myColor === 'white' ? 'black' : 'white';
       $('#opponent-piece-icon').innerHTML = `<img src="/assets/pieces/${oppColor}_king.svg" alt="">`;
 
-      // Both connected
       $('#self-connection').className = 'connection-dot connected';
       $('#opponent-connection').className = 'connection-dot connected';
 
       gameActive = true;
       currentTurn = 'white';
 
-      // Set starting position
       board.setPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-      // Re-join to get full game-state with legal moves.
-      // Safe: server's gameReadySent flag prevents another game-ready loop.
-      socket.emit('join-game', { gameId, playerId });
+      sock.emit('join-game', { gameId, playerId });
 
       updateStatusText();
       updateControls();
     });
 
-    socket.on('move-made', (data) => {
+    sock.on('move-made', (data) => {
       board.setPosition(data.fen);
       board.setLastMove(data.from, data.to);
       currentTurn = data.turn;
 
-      // Update legal moves and interactivity
       const isMyTurn = data.turn === myColor;
       board.setLegalMoves(isMyTurn ? data.legalMoves : {});
       board.setInteractive(isMyTurn);
 
-      // Check highlight
       if (data.inCheck) {
         const kingSquare = board.findKing(data.turn);
         if (kingSquare) board.setCheck(kingSquare);
@@ -452,55 +507,50 @@
         board.clearCheck();
       }
 
-      // Update captured pieces
       if (data.captured) {
         addCapturedPiece(data.captured, data.turn === 'white' ? 'black' : 'white');
       }
 
-      // Update move history
       addMoveToHistory(data.moveNumber, data.san, data.turn === 'black' ? 'white' : 'black');
-
       updateStatusText();
-
-      // Play sound
       playMoveSound(data.captured);
     });
 
-    socket.on('move-rejected', (data) => {
-      // Flash error briefly
+    sock.on('move-rejected', (data) => {
       const statusEl = $('#status-text');
       const prev = statusEl.textContent;
       statusEl.textContent = data.error || 'Invalid move';
       $('#game-status').style.color = 'var(--danger)';
       setTimeout(() => {
         statusEl.textContent = prev;
+        $('#game-status').style.color = '';
         updateStatusText();
       }, 1500);
     });
 
-    socket.on('player-connected', (data) => {
+    sock.on('player-connected', (data) => {
       if (data.color !== myColor) {
         $('#opponent-connection').className = 'connection-dot connected';
         if (data.name) $('#opponent-name').textContent = data.name;
       }
     });
 
-    socket.on('player-disconnected', (data) => {
+    sock.on('player-disconnected', (data) => {
       if (data.color !== myColor) {
         $('#opponent-connection').className = 'connection-dot';
       }
     });
 
-    socket.on('draw-offered', () => {
+    sock.on('draw-offered', () => {
       $('#draw-offer-popup').style.display = '';
     });
 
-    socket.on('draw-declined', () => {
+    sock.on('draw-declined', () => {
       $('#draw-btn').disabled = false;
       $('#draw-btn').textContent = 'Offer Draw';
     });
 
-    socket.on('game-over', (data) => {
+    sock.on('game-over', (data) => {
       gameActive = false;
       board.setInteractive(false);
       board.setLegalMoves({});
@@ -509,31 +559,30 @@
       let message = '';
 
       if (data.type === 'checkmate') {
-        title = 'Checkmate!';
-        message = `${data.winner === myColor ? 'You win' : 'You lose'}!`;
+        title = data.winner === myColor ? 'You Win! 🦭' : 'You Lose';
+        message = data.winner === myColor ? 'Checkmate! Well played!' : 'Checkmate. Better luck next time!';
       } else if (data.type === 'stalemate') {
         title = 'Stalemate';
-        message = 'The game is a draw.';
+        message = 'The game is a draw by stalemate.';
       } else if (data.type === 'draw' || data.type === 'draw_agreed') {
         title = 'Draw';
         message = data.reason ? `Draw by ${data.reason}.` : 'The game is a draw by agreement.';
       } else if (data.type === 'resignation') {
-        title = 'Resignation';
-        message = `${data.winner === myColor ? 'You win' : 'You lose'} by resignation!`;
+        title = data.winner === myColor ? 'You Win! 🦭' : 'You Lose';
+        message = data.winner === myColor ? 'Opponent resigned.' : 'You resigned.';
       } else if (data.type === 'abandonment') {
-        title = 'Abandonment';
-        message = `${data.winner === myColor ? 'You win' : 'You lose'} - opponent disconnected.`;
+        title = data.winner === myColor ? 'You Win! 🦭' : 'You Lose';
+        message = data.winner === myColor ? 'Opponent disconnected.' : 'You were disconnected too long.';
       }
 
       if (data.whiteName && data.blackName) {
-        message += `\n${data.whiteName} (White) vs ${data.blackName} (Black)`;
+        message += `\n${data.whiteName} vs ${data.blackName}`;
       }
 
       $('#game-over-title').textContent = title;
       $('#game-over-message').textContent = message;
       $('#game-over-overlay').style.display = '';
 
-      // Hide controls
       $('#resign-btn').style.display = 'none';
       $('#draw-btn').style.display = 'none';
       $('#draw-offer-popup').style.display = 'none';
@@ -541,17 +590,12 @@
       clearSession();
     });
 
-    socket.on('error-msg', (data) => {
+    sock.on('error-msg', (data) => {
       alert(data.message || 'An error occurred');
     });
 
-    socket.on('disconnect', () => {
+    sock.on('disconnect', () => {
       $('#self-connection').className = 'connection-dot';
-    });
-
-    socket.on('reconnect', () => {
-      $('#self-connection').className = 'connection-dot connected';
-      socket.emit('join-game', { gameId, playerId });
     });
   }
 
@@ -567,7 +611,6 @@
     }
 
     const isMyTurn = currentTurn === myColor;
-
     if (isMyTurn) {
       statusEl.textContent = 'Your turn';
       gameStatusEl.className = 'game-status your-turn';
@@ -585,13 +628,10 @@
   }
 
   function addCapturedPiece(pieceType, capturedColor) {
-    // capturedColor = color of the piece that was captured
     const isOpponentPiece = capturedColor !== myColor;
     const container = isOpponentPiece ? $('#self-captured') : $('#opponent-captured');
-
     const pieceNames = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
     const pieceName = pieceNames[pieceType] || pieceType;
-
     const img = document.createElement('img');
     img.src = `/assets/pieces/${capturedColor}_${pieceName}.svg`;
     img.alt = `${capturedColor} ${pieceName}`;
@@ -604,7 +644,6 @@
     const moveList = $('#move-list');
 
     if (movedColor === 'white') {
-      // New move pair
       const numEl = document.createElement('span');
       numEl.className = 'move-number';
       numEl.textContent = Math.ceil(moveNumber / 2) + '.';
@@ -615,7 +654,6 @@
 
       moveList.appendChild(numEl);
       moveList.appendChild(whiteEl);
-
       moveHistoryMoves.push({ number: Math.ceil(moveNumber / 2), white: san, black: null });
     } else {
       const blackEl = document.createElement('span');
@@ -628,11 +666,10 @@
       }
     }
 
-    // Auto-scroll
     moveList.scrollTop = moveList.scrollHeight;
   }
 
-  // Simple move sounds using Web Audio API
+  // Simple move sounds
   let audioCtx = null;
 
   function playMoveSound(isCapture) {

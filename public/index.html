@@ -13,8 +13,26 @@
       <h1 class="logo">🦭 Seal Chess</h1>
       <p class="tagline">Real-time multiplayer chess with adorable baby seals</p>
 
+      <!-- QUICK MATCH -->
+      <div id="quickmatch-section" class="lobby-section lobby-section--highlight">
+        <h2>⚡ Quick Match</h2>
+        <p class="section-desc">Enter your name and we'll find an opponent instantly.</p>
+        <input type="text" id="quickmatch-name" placeholder="Your display name" maxlength="30" autocomplete="off">
+        <button id="quickmatch-btn" class="btn btn-primary btn-wide">Find Match</button>
+        <div id="quickmatch-waiting" style="display:none;">
+          <div class="waiting-spinner">
+            <div class="spinner"></div>
+            <span>Finding an opponent...</span>
+          </div>
+          <button id="cancel-queue-btn" class="btn btn-secondary btn-small" style="margin-top:8px;">Cancel</button>
+        </div>
+      </div>
+
+      <div class="lobby-divider"><span>or</span></div>
+
       <div id="create-section" class="lobby-section">
         <h2>Create a Game</h2>
+        <p class="section-desc">Create a game and share the invite link with a friend.</p>
         <input type="text" id="create-name" placeholder="Your display name" maxlength="30" autocomplete="off">
         <button id="create-btn" class="btn btn-primary">Create Game</button>
       </div>

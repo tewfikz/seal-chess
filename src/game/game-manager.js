@@ -227,6 +227,25 @@ const gameManager = {
     return { gameId, playerId, color, reconnected: true };
   },
 
+  // Create a game between two already-named players (for matchmaking)
+  createMatchedGame(whiteName, blackName) {
+    const whiteId = uuidv4();
+    const blackId = uuidv4();
+    const gameId = uuidv4().substring(0, 8);
+
+    db.createPlayer(whiteId, whiteName);
+    db.createPlayer(blackId, blackName);
+    db.createGame(gameId, whiteId);
+
+    const game = new GameInstance(gameId, whiteId);
+    game.blackPlayerId = blackId;
+    game.status = 'active';
+    activeGames.set(gameId, game);
+    db.joinGame(gameId, blackId);
+
+    return { gameId, whitePlayerId: whiteId, blackPlayerId: blackId };
+  },
+
   getGame(gameId) {
     return activeGames.get(gameId);
   },

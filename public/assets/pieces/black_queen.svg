@@ -6,8 +6,10 @@
   <ellipse cx="50" cy="53" rx="4.5" ry="2.8" fill="#0a0a14"/>
   <circle cx="40" cy="45" r="5" fill="#00CED1"/>
   <circle cx="60" cy="45" r="5" fill="#00CED1"/>
-  <circle cx="41.5" cy="43.5" r="1.5" fill="rgba(255,255,255,0.7)"/>
-  <circle cx="61.5" cy="43.5" r="1.5" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="41.5" cy="43.5" r="2.0" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="61.5" cy="43.5" r="2.0" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="42.8" cy="44.6" r="1.0" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="62.8" cy="44.6" r="1.0" fill="rgba(255,255,255,0.5)"/>
   <ellipse cx="28" cy="76" rx="11" ry="6" fill="#263040" stroke="#1a2530" stroke-width="1" transform="rotate(-25 28 76)"/>
   <ellipse cx="72" cy="76" rx="11" ry="6" fill="#263040" stroke="#1a2530" stroke-width="1" transform="rotate(25 72 76)"/>
   <ellipse cx="50" cy="86" rx="12" ry="6" fill="#263040" stroke="#1a2530" stroke-width="1"/>
@@ -21,6 +23,11 @@
   <circle cx="67" cy="20" r="4" fill="#00CED1" stroke="#008B99" stroke-width="1"/>
   <circle cx="42" cy="30" r="2.5" fill="#FFD700"/>
   <circle cx="58" cy="30" r="2.5" fill="#FFD700"/>
+  <!-- Blush cheeks - eyes at 40,45 and 60,45 -->
+  <ellipse cx="30" cy="52" rx="6" ry="4" fill="rgba(255,130,130,0.30)"/>
+  <ellipse cx="70" cy="52" rx="6" ry="4" fill="rgba(255,130,130,0.30)"/>
+  <!-- Smile on muzzle - muzzle center 50,57 -->
+  <path d="M 44,60 Q 50,64 56,60" stroke="rgba(80,40,40,0.35)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
   <!-- Whiskers -->
   <line x1="37" y1="56" x2="21" y2="53" stroke="#4a6070" stroke-width="1"/>
   <line x1="37" y1="59" x2="21" y2="60" stroke="#4a6070" stroke-width="1"/>

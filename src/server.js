@@ -14,6 +14,9 @@ const io = new Server(server, {
   pingInterval: 10000
 });
 
+// Trust Cloudflare / reverse-proxy headers
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -27,6 +30,11 @@ const limiter = rateLimit({
   message: { error: 'Too many requests, please slow down.' }
 });
 app.use('/api/', limiter);
+
+// Health check (for Cloudflare tunnel / uptime monitors)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'seal-chess' });
+});
 
 // API routes
 app.use('/api', apiRoutes);
@@ -45,7 +53,7 @@ setupSocketHandlers(io);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Crab Chess server running on http://localhost:${PORT}`);
+  console.log(`Seal Chess server running on http://localhost:${PORT}`);
 });
 
 process.on('SIGTERM', () => {

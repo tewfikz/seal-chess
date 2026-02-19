@@ -1,5 +1,5 @@
 /**
- * Crab Chess - Integration Test Suite
+ * Seal Chess - Integration Test Suite
  * Tests multiplayer game flow, persistence, scoring, and edge cases
  *
  * Run: npm test (with server NOT running - test starts its own)
@@ -339,7 +339,7 @@ async function testReconnect(gameId, playerId) {
 }
 
 async function runAll() {
-  console.log('=== Crab Chess Integration Tests ===\n');
+  console.log('=== Seal Chess Integration Tests ===\n');
   console.log('Starting test server on port 3099...');
 
   try {

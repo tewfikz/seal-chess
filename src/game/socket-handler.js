@@ -3,11 +3,61 @@ const db = require('../db');
 
 const DISCONNECT_TIMEOUT = 60000;
 
+// Matchmaking queue: [{ socketId, playerName }]
+const matchmakingQueue = [];
+
+function sanitizeName(name) {
+  if (!name || typeof name !== 'string') return null;
+  const trimmed = name.trim().substring(0, 30);
+  const cleaned = trimmed.replace(/[^a-zA-Z0-9 _\-]/g, '');
+  return cleaned.length > 0 ? cleaned : null;
+}
+
 function setupSocketHandlers(io) {
   io.on('connection', (socket) => {
     let currentGameId = null;
     let currentPlayerId = null;
 
+    // === MATCHMAKING ===
+    socket.on('join-queue', ({ playerName }) => {
+      const name = sanitizeName(playerName);
+      if (!name) {
+        socket.emit('queue-error', { message: 'Invalid player name (letters, numbers, max 30 chars)' });
+        return;
+      }
+
+      // Prevent duplicate queue entries for this socket
+      if (matchmakingQueue.find(p => p.socketId === socket.id)) return;
+
+      matchmakingQueue.push({ socketId: socket.id, playerName: name });
+      socket.emit('queue-joined', { queueSize: matchmakingQueue.length });
+
+      // Try to pair
+      if (matchmakingQueue.length >= 2) {
+        const [white, black] = matchmakingQueue.splice(0, 2);
+        const { gameId, whitePlayerId, blackPlayerId } = gameManager.createMatchedGame(
+          white.playerName,
+          black.playerName
+        );
+
+        const wSocket = io.sockets.sockets.get(white.socketId);
+        const bSocket = io.sockets.sockets.get(black.socketId);
+
+        if (wSocket) {
+          wSocket.emit('match-found', { gameId, playerId: whitePlayerId, color: 'white' });
+        }
+        if (bSocket) {
+          bSocket.emit('match-found', { gameId, playerId: blackPlayerId, color: 'black' });
+        }
+      }
+    });
+
+    socket.on('leave-queue', () => {
+      const idx = matchmakingQueue.findIndex(p => p.socketId === socket.id);
+      if (idx !== -1) matchmakingQueue.splice(idx, 1);
+    });
+
+    // === GAME ===
     socket.on('join-game', ({ gameId, playerId }) => {
       const game = gameManager.getGame(gameId);
       if (!game) {
@@ -156,6 +206,10 @@ function setupSocketHandlers(io) {
     });
 
     socket.on('disconnect', () => {
+      // Remove from matchmaking queue if applicable
+      const qIdx = matchmakingQueue.findIndex(p => p.socketId === socket.id);
+      if (qIdx !== -1) matchmakingQueue.splice(qIdx, 1);
+
       if (!currentGameId || !currentPlayerId) return;
       const game = gameManager.getGame(currentGameId);
       if (!game) return;

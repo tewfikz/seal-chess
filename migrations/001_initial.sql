@@ -1,4 +1,4 @@
--- Crab Chess - Initial Schema Migration
+-- Seal Chess - Initial Schema Migration
 
 CREATE TABLE IF NOT EXISTS players (
   id TEXT PRIMARY KEY,

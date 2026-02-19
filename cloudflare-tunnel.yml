@@ -1,0 +1,16 @@
+# Seal Chess - Cloudflare Tunnel Config
+# Usage: cloudflared tunnel --config cloudflare-tunnel.yml run
+#
+# Prerequisites:
+#   brew install cloudflared
+#   cloudflared tunnel login
+#   cloudflared tunnel create seal-chess
+#   (copy the tunnel ID from the output into tunnel: below)
+
+tunnel: <YOUR_TUNNEL_ID>
+credentials-file: /Users/tewfik/.cloudflared/<YOUR_TUNNEL_ID>.json
+
+ingress:
+  - hostname: chess.yourdomain.com   # replace with your domain (or use the free *.trycloudflare.com)
+    service: http://localhost:3000
+  - service: http_status:404
